@@ -7,6 +7,15 @@ class DynamicArray:
     """
     A class to dynamically grow numpy array as data is added in an efficient manner.
     For arrays or column vectors (new rows added, but no new added columns).
+
+    Attributes:
+    ----------
+    shape: tuple(2)
+        Starting shape of the dynamic array
+    index_expansion: bool
+        allow setting indexing outside current compacitty
+        will set all values between previsous size to new value to zero
+
     Example
     -------
     a = DynamicArray((100, 2))
@@ -17,10 +26,29 @@ class DynamicArray:
     print(a.data.shape)
     """
 
-    def __init__(self, shape: Optional[Union[int, Tuple]] = 100):
+    def __init__(self, shape: Optional[Union[int, Tuple, list, np.ndarray]] = 100, index_expansion: bool = False):
         self._data = np.empty(shape)
         self.capacity = self._data.shape[0]
         self.size = 0
+
+        self.index_expansion = index_expansion
+
+    def __getitem__(self, index):
+        return self._data[:self.size][index]
+
+    def __setitem__(self, index, value):
+
+        self._data[:self.size][index] = value
+
+    def __len__(self):
+        return self.size
+
+    def __repr__(self):
+
+        return (self._data[:self._size].__repr__()
+                .replace('array',
+                         'DynamicArray(size={}, capacity={})'
+                         .format(self._size, self._capacity)))
 
     def add(self, x: np.ndarray):
         """ Add data to array. """
