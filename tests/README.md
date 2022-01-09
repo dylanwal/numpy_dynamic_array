@@ -31,6 +31,8 @@ Run this in the terminal:
 ---
 ## To build package and push update:
 Run this in the terminal:
+`pip install build`
+`pip install twine`
 
 `py -m build`
 

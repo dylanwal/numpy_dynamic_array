@@ -30,6 +30,7 @@ pip install numpy_dynamic_array
 ### Basics
 
 ```python
+import numpy as np
 from numpy_da import DynamicArray
 
 data = DynamicArray(shape=2)
