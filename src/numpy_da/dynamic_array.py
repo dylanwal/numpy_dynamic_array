@@ -1,11 +1,12 @@
-from typing import Union
+from typing import Union, Any
 
 import numpy as np
 
 number_type = (int, float)
 array_type = (np.ndarray, list, tuple)
 value_type = array_type + number_type
-value_alias = Union[int, float, list, tuple, np.ndarray]
+value_alias = Union[int, float, list[Any], tuple[Any], np.ndarray]
+index_alias = Union[int, slice, tuple[int]]
 
 
 class DynamicArray:
@@ -31,7 +32,7 @@ class DynamicArray:
     print(a.data.shape)
     """
 
-    def __init__(self, shape: Union[int, tuple, list] = 100, dtype=None, index_expansion: bool = False):
+    def __init__(self, shape: Union[int, tuple[int], list[int]] = 100, dtype=None, index_expansion: bool = False):
         self._data = np.zeros(shape, dtype) if dtype is not None else np.zeros(shape)
         self.capacity = self._data.shape[0]
         self.size = 0
@@ -43,10 +44,10 @@ class DynamicArray:
     def __repr__(self):
         return self.data.__repr__().replace("array", f'DynamicArray(size={self.size}, capacity={self.capacity})')
 
-    def __getitem__(self, index: Union[int, slice]):
+    def __getitem__(self, index: index_alias):
         return self.data[index]
 
-    def __setitem__(self, index: Union[int, slice, tuple], value: value_alias):
+    def __setitem__(self, index: index_alias, value: value_alias):
         max_index = self._get_max_index(index)
         if not self.index_expansion:
             if max_index > self.size:
@@ -73,12 +74,12 @@ class DynamicArray:
             self.size += capacity_change
 
     @staticmethod
-    def _get_max_index(index: Union[int, slice]) -> int:
+    def _get_max_index(index: index_alias) -> int:
         """ get max index """
         if isinstance(index, slice):
             return int(index.stop)
         if isinstance(index, tuple):
-            return index[0] + 1
+            return int(index[0]) + 1
 
         # must be an int
         return index + 1
@@ -180,6 +181,6 @@ class DynamicArray:
         self._data = newdata
 
     @property
-    def data(self) -> np.ndarray:
+    def data(self):
         """ Returns data without extra spaces. """
         return self._data[:self.size]

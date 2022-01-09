@@ -125,7 +125,7 @@ def test_growing_array_by_index():
 def test_error_index_zero():
     data = DynamicArray(shape=(5, 2), index_expansion=True)
     data[8, 1] = 1
-    answer = [[0, 0]*8]
+    answer = [[0, 0] for i in range(9)]
     answer[8][1] = 1
     assert np.array_equal(data, answer)
 
@@ -140,80 +140,68 @@ def test_growing_array_by_slice():
     assert np.array_equal(data, answer)
 
 
+# modify data with indexing
+def test_indexing():
+    data = DynamicArray(shape=(8, 2))
+    data.append(np.linspace(0, 9, 10).reshape(5, 2))
+    data[3] = [40, 40]
+    assert all(data[3] == [40, 40])
 
 
+def test_indexing_neg():
+    data = DynamicArray(shape=(8, 2))
+    data.append(np.linspace(0, 9, 10).reshape(5, 2))
+    data[-1, 0] = 100
+    assert data[4, 0] == 100
 
-# # modify data with indexing
-# def test_indexing():
-#     data = DynamicArray()
-#     data.append(np.linspace(0, 9, 10))
-#     data[3] = 40
-#     assert data[3] == 40
-#
-#
-# def test_indexing_neg():
-#     data = DynamicArray()
-#     data.append(np.linspace(0, 9, 10))
-#     data[-1] = 100
-#     assert data[9] == 100
-#
-#
-# def test_indexing_plus_equal():
-#     data = DynamicArray()
-#     data.append(np.linspace(0, 9, 10))
-#     data[2] += 1
-#     assert data[2] == 3
-#
-#
-# def test_indexing_slice():
-#     data = DynamicArray()
-#     data.append(np.linspace(0, 9, 10))
-#     data[3:6] = [0, 0, 0]
-#     assert data == [0, 1, 2, 0, 0, 0, 6, 7, 8, 9]
-#
-#
-# def test_indexing_slice2():
-#     data = DynamicArray()
-#     data.append(np.linspace(0, 9, 10))
-#     data[3:6] = [0, 0, 0]
-#     assert all(data[3:6] == [0, 0, 0])
-#
-#
-# # Errors
-# def test_error_index_get():
-#     with pytest.raises(IndexError):
-#         data = DynamicArray()
-#         data.append(np.linspace(0, 9, 10))
-#         print(data[100])
-#
-#
-# def test_error_index_set():
-#     with pytest.raises(IndexError):
-#         data = DynamicArray()
-#         data.append(np.linspace(0, 9, 10))
-#         data[100] = 100
-#
-#
-# def test_error_append_dict():
-#     with pytest.raises(ValueError):
-#         data = DynamicArray()
-#         data.append({"fish": 1})
-#
-#
-# # numpy functions
-# def test_numpy_max(np_array):
-#     data = DynamicArray()
-#     data.append(np_array)
-#     assert data.max() == np_array.max()
-#
-#
-# def test_numpy_item(np_array):
-#     data = DynamicArray()
-#     data.append(np_array)
-#     assert data.item(2) == np_array.item(2)
-#
-#
-# def test_numpy_abs(np_array):
-#     data = DynamicArray()
-#     data.append(np_array)
-#     assert all(np.abs(data - 5) == np.abs(np_array - 5))
+
+def test_indexing_slice():
+    data = DynamicArray(shape=(8, 2))
+    data.append(np.linspace(0, 13, 14).reshape(7, 2))
+    data[3:6] = [[0, 0], [0, 0], [0, 0]]
+    answer = [[0, 0] for i in range(7)]
+    answer[0] = [0, 1]
+    answer[1] = [2, 3]
+    answer[2] = [4, 5]
+    answer[6] = [12, 13]
+    assert np.array_equal(data, answer)
+
+
+# Errors
+def test_error_index_get():
+    with pytest.raises(IndexError):
+        data = DynamicArray(shape=(8, 2))
+        data.append(np.linspace(0, 13, 14).reshape(7, 2))
+        print(data[100])
+
+
+def test_error_index_set():
+    with pytest.raises(IndexError):
+        data = DynamicArray(shape=(8, 2))
+        data.append(np.linspace(0, 13, 14).reshape(7, 2))
+        data[100] = 100
+
+
+def test_error_append_dict():
+    with pytest.raises(ValueError):
+        data = DynamicArray(shape=(8, 2))
+        data.append({"fish": 1})
+
+
+# numpy functions
+def test_numpy_max(np_array):
+    data = DynamicArray(shape=(10, 2))
+    data.append(np_array)
+    assert data.max() == np_array.max()
+
+
+def test_numpy_item(np_array):
+    data = DynamicArray(shape=(10, 2))
+    data.append(np_array)
+    assert data.item(2) == np_array.item(2)
+
+
+def test_numpy_abs(np_array):
+    data = DynamicArray(shape=(10, 2))
+    data.append(np_array)
+    assert np.array_equal(np.abs(data - 5), np.abs(np_array - 5))
