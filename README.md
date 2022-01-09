@@ -17,11 +17,15 @@ pip install numpy_dynamic_array
 ---
 ## Usage
 
-
 ```python
 from numpy_da import DynamicArray
 
+data = DynamicArray(shape=5)
 
+for i in range(15):
+    data[i] = i
+
+print(data._data)
 
 ```
 

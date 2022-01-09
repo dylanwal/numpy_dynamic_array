@@ -1,6 +1,11 @@
-from typing import Optional, Union, Tuple
+from typing import Union
 
 import numpy as np
+
+number_type = (int, float)
+array_type = (np.ndarray, list, tuple)
+value_type = array_type + number_type
+value_alias = Union[int, float, list, tuple, np.ndarray]
 
 
 class DynamicArray:
@@ -10,60 +15,157 @@ class DynamicArray:
 
     Attributes:
     ----------
-    shape: tuple(2)
+    shape: int, array_type
         Starting shape of the dynamic array
     index_expansion: bool
-        allow setting indexing outside current compacitty
-        will set all values between previsous size to new value to zero
+        allow setting indexing outside current capacity
+        will set all values between previous size to new value to zero
 
     Example
     -------
     a = DynamicArray((100, 2))
-    a.add(np.ones((20, 2)))
-    a.add(np.ones((120, 2)))
-    a.add(np.ones((10020, 2)))
+    a.append(np.ones((20, 2)))
+    a.append(np.ones((120, 2)))
+    a.append(np.ones((10020, 2)))
     print(a.data)
     print(a.data.shape)
     """
 
-    def __init__(self, shape: Optional[Union[int, Tuple, list, np.ndarray]] = 100, index_expansion: bool = False):
-        self._data = np.empty(shape)
+    def __init__(self, shape: Union[int, tuple, list] = 100, dtype=None, index_expansion: bool = False):
+        self._data = np.zeros(shape, dtype) if dtype is not None else np.zeros(shape)
         self.capacity = self._data.shape[0]
         self.size = 0
-
         self.index_expansion = index_expansion
 
-    def __getitem__(self, index):
-        return self._data[:self.size][index]
+    def __str__(self):
+        return self.data.__str__()
 
-    def __setitem__(self, index, value):
+    def __repr__(self):
+        return self.data.__repr__().replace("array", f'DynamicArray(size={self.size}, capacity={self.capacity})')
 
-        self._data[:self.size][index] = value
+    def __getitem__(self, index: Union[int, slice]):
+        return self.data[index]
+
+    def __setitem__(self, index: Union[int, slice, tuple], value: value_alias):
+        max_index = self._get_max_index(index)
+        if not self.index_expansion:
+            if max_index > self.size:
+                raise IndexError(f"Attempting to reach index outside of data array. "
+                                 f"Size: {self.size}, attempt index: {max_index}\n"
+                                 f"If you want the array to grow with indexing, set index_expansion to True.")
+
+        self._capacity_check_index(max_index)
+
+        # add data
+        if isinstance(index, int) and index < 0 or \
+                isinstance(index, slice) and (index.start < 0 or index.stop < 0) or \
+                isinstance(index, tuple) and any(i < 0 for i in index):
+            # handle negative indexing
+            self.data[index] = value
+        else:
+            # handling positive indexing
+            self._data[index] = value
+
+        # update capacity and size (if it was outside current size)
+        if max_index > self.size:
+            capacity_change = max_index - self.size
+            self.capacity -= capacity_change
+            self.size += capacity_change
+
+    @staticmethod
+    def _get_max_index(index: Union[int, slice]) -> int:
+        """ get max index """
+        if isinstance(index, slice):
+            return int(index.stop)
+        if isinstance(index, tuple):
+            return index[0] + 1
+
+        # must be an int
+        return index + 1
+
+    def __getattribute__(self, name):
+        try:
+            attr = object.__getattribute__(self, name)
+        except AttributeError:
+            # check numpy for function call
+            attr = object.__getattribute__(self.data, name)
+
+        if hasattr(attr, '__call__'):
+            def newfunc(*args, **kwargs):
+                result = attr(*args, **kwargs)
+                return result
+            return newfunc
+
+        else:
+            return attr
+
+    def __add__(self, a):
+        return self.data + a
+
+    def __eq__(self, a):
+        if a.__class__ is self.__class__ or a.__class__ in array_type:
+            return np.equal(self.data, a)
+
+    def __floordiv__(self, a):
+        return self.data // a
+
+    def __mod__(self, a):
+        return self.data % a
+
+    def __mul__(self, a):
+        return self.data * a
+
+    def __neg__(self):
+        return -self.data
+
+    def __pow__(self, a):
+        return self.data ** a
+
+    def __truediv__(self, a):
+        return self.data / a
+
+    def __sub__(self, a):
+        return self.data - a
 
     def __len__(self):
         return self.size
 
-    def __repr__(self):
-
-        return (self._data[:self._size].__repr__()
-                .replace('array',
-                         'DynamicArray(size={}, capacity={})'
-                         .format(self._size, self._capacity)))
-
-    def add(self, x: np.ndarray):
+    def append(self, x: value_alias):
         """ Add data to array. """
-        if x.shape[0] > self.capacity:
-            self._grow_capacity(x)
+        add_size = self._capacity_check(x)
 
-        self._data[self.size:self.size + x.shape[0]] = x
-        self.size += x.shape[0]
-        self.capacity -= x.shape[0]
+        # Add new data to array
+        self._data[self.size:self.size + add_size] = x
+        self.size += add_size
+        self.capacity -= add_size
 
-    def _grow_capacity(self, x: np.ndarray):
+    def _capacity_check_index(self, index: int = 0):
+        if index > len(self._data):
+            add_size = (index-len(self._data)) + self.capacity
+            self._grow_capacity(add_size)
+
+    def _capacity_check(self, x: value_alias):
+        """ Check if there is room for the new data. """
+        if isinstance(x, number_type):
+            add_size = 1
+        elif isinstance(x, array_type):
+            add_size = len(x)
+        else:
+            raise ValueError("Invalid item to add.")
+
+        if add_size > self.capacity:
+            self._grow_capacity(add_size)
+
+        return add_size
+
+    def _grow_capacity(self, add_size: int):
         """ Grows the capacity of the _data array. """
+        # calculate what change is needed.
+        change_need = add_size - self.capacity
+
+        # make new larger data array
         shape_ = list(self._data.shape)
-        change_need = x.shape[0] - self.capacity
-        if shape_[0] + self.capacity > change_need:
+        if shape_[0] + self.capacity > add_size:
             # double in size
             self.capacity += shape_[0]
             shape_[0] = shape_[0] * 2
@@ -71,8 +173,9 @@ class DynamicArray:
             # if doubling is not enough, grow to fit incoming data exactly.
             self.capacity += change_need
             shape_[0] = shape_[0] + change_need
+        newdata = np.zeros(shape_, dtype=self._data.dtype)
 
-        newdata = np.empty(shape_)
+        # copy data into new array and replace old one
         newdata[:self._data.shape[0]] = self._data
         self._data = newdata
 

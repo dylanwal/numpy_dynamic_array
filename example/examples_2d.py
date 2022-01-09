@@ -4,9 +4,10 @@ from numpy_da import DynamicArray
 
 data = DynamicArray(shape=(8, 2))
 
-# add data
-data.add(np.linspace(0, 9, 10).reshape(5, 2))
-data.add(np.linspace(0, 9, 10).reshape(5, 2))
+# append data
+data.append(np.linspace(0, 9, 10).reshape(5, 2))
+print(data)
+data.append(np.linspace(0, 9, 10).reshape(5, 2))
 
 
 # modify current data
@@ -24,9 +25,9 @@ else:
         print("IndexError raise, and expected.")
 
 # view data
-print(data.data[5])
+print(data[5])
 print()
-print(data.data[6:10])
+print(data[6:10])
 print()
-print(data.data)
+print(data)
 
