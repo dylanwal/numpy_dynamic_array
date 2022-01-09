@@ -38,13 +38,17 @@ Run this in the terminal:
 
 ## To creating/update badges:
 
+`pip install genbadge[all]`
+
 **Test:**
 
 `pytest --junitxml=reports/junit/junit.xml`
 
 `genbadge tests -o -> ./tests/badges/tests-badge.svg`
 
-**Coverange:**
+**Coverage:**
+
+`pytest --cov-report xml:./reports/coverage/cov.xml`
 
 `genbadge coverage -o -> ./tests/badges/coverage-badge.svg`
 

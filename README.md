@@ -3,6 +3,9 @@
 ---
 ---
 ![PyPI](https://img.shields.io/pypi/v/numpy_dynamic_array)
+![tests](https://raw.githubusercontent.com/dylanwal/numpy_dynamic_array/master/tests/badges/tests-badge.svg)
+![coverage](https://raw.githubusercontent.com/dylanwal/numpy_dynamic_array/master/tests/badges/coverage-badge.svg)
+![flake8](https://raw.githubusercontent.com/dylanwal/numpy_dynamic_array/master/tests/badges/flake8-badge.svg)
 ![downloads](https://img.shields.io/pypi/dm/numpy_dynamic_array)
 ![license](https://img.shields.io/github/license/dylanwal/numpy_dynamic_array)
 
