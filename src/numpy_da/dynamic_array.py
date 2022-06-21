@@ -5,8 +5,8 @@ import numpy as np
 number_type = (int, float)
 array_type = (np.ndarray, list, tuple)
 value_type = array_type + number_type
-value_alias = Union[int, float, list[Any], tuple[Any], np.ndarray]
-index_alias = Union[int, slice, tuple[int]]
+# value_alias = Union[int, float, list[Any], tuple[Any], np.ndarray]
+# index_alias = Union[int, slice, tuple[int]]
 
 
 class DynamicArray:
@@ -32,7 +32,7 @@ class DynamicArray:
     print(a.data.shape)
     """
 
-    def __init__(self, shape: Union[int, tuple[int], list[int]] = 100, dtype=None, index_expansion: bool = False):
+    def __init__(self, shape=100, dtype=None, index_expansion=False):
         self._data = np.zeros(shape, dtype) if dtype is not None else np.zeros(shape)
         self.capacity = self._data.shape[0]
         self.size = 0
@@ -44,10 +44,10 @@ class DynamicArray:
     def __repr__(self):
         return self.data.__repr__().replace("array", f'DynamicArray(size={self.size}, capacity={self.capacity})')
 
-    def __getitem__(self, index: index_alias):
+    def __getitem__(self, index):
         return self.data[index]
 
-    def __setitem__(self, index: index_alias, value: value_alias):
+    def __setitem__(self, index, value):
         max_index = self._get_max_index(index)
         if not self.index_expansion:
             if max_index > self.size:
@@ -74,7 +74,7 @@ class DynamicArray:
             self.size += capacity_change
 
     @staticmethod
-    def _get_max_index(index: index_alias) -> int:
+    def _get_max_index(index) -> int:
         """ get max index """
         if isinstance(index, slice):
             return int(index.stop)
@@ -131,7 +131,7 @@ class DynamicArray:
     def __len__(self):
         return self.size
 
-    def append(self, x: value_alias):
+    def append(self, x):
         """ Add data to array. """
         add_size = self._capacity_check(x)
 
@@ -140,12 +140,12 @@ class DynamicArray:
         self.size += add_size
         self.capacity -= add_size
 
-    def _capacity_check_index(self, index: int = 0):
+    def _capacity_check_index(self, index=0):
         if index > len(self._data):
             add_size = (index-len(self._data)) + self.capacity
             self._grow_capacity(add_size)
 
-    def _capacity_check(self, x: value_alias):
+    def _capacity_check(self, x):
         """ Check if there is room for the new data. """
         if isinstance(x, number_type):
             add_size = 1
@@ -159,7 +159,7 @@ class DynamicArray:
 
         return add_size
 
-    def _grow_capacity(self, add_size: int):
+    def _grow_capacity(self, add_size):
         """ Grows the capacity of the _data array. """
         # calculate what change is needed.
         change_need = add_size - self.capacity
