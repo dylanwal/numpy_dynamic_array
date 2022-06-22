@@ -18,8 +18,15 @@ present here is focused on being compatible with the typical Numpy indexing and 
 
 ## Installation
 
+For python >=3.9
 ```
 pip install numpy_dynamic_array
+```
+
+
+For python 3.7-3.9, directly install from the python37 branch with
+```
+pip install https://github.com/dylanwal/numpy_dynamic_array/archive/python37.zip
 ```
 
 ---
